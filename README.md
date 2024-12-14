@@ -1,2 +1,1 @@
-# ZPay-Payment
-Implementation of zpay payment API
+# Payment Management

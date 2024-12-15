@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" />
+    <meta name="renderer" content="webkit" />
+
+    <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
+    <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <!-- 如果使用了组件的 icon 属性，还需要引入图标的 CSS 文件 -->
+
+    <title>Hello, world!</title>
+</head>
+
+<body>
+    <div style="height: 64px;"></div>
+    <mdui-card variant="outlined" style="width: 800px;margin: 16px;padding: 16px;">
+        <h2 style="margin: 0px;">Payment Confirm</h2>
+        <div>
+            <h4>Name</h4>
+            <h4>Price</h4>
+            <h4>Time</h4>
+        </div>
+        <canvas id="qrcode"></canvas>
+        <mdui-checkbox id="checkbox"><strong>I understand the ...</strong></mdui-checkbox>
+        <br>
+        <mdui-button id="confirm" variant="tonal" disabled>Go on</mdui-button>
+    </mdui-card>
+</body>
+
+<script>
+    let $ = mdui.$
+
+    $('#checkbox').on('change', () => {
+        let status = document.getElementById('checkbox').checked
+        if (status) {
+            $('#confirm').removeAttr('disabled')
+        } else {
+            $('#confirm').attr('disabled', 'true')
+        }
+    })
+
+    function get_css_custom_properties(key) {
+        let rootStyles = getComputedStyle(document.documentElement);
+        let value = rootStyles.getPropertyValue(key); // 获取自定义属性
+
+        return value
+    }
+
+    function generate(id, text) {
+        const canvas = document.getElementById(id);
+        const qr = new QRious({
+            element: canvas,
+            size: 200, // 二维码大小
+            background: 'transparent', // 设置背景为透明
+        });
+
+        qr.set({
+            value: text,
+            foreground: `rgb(${get_css_custom_properties('--mdui-color-on-background')})`
+        });
+    }
+
+    generate('qrcode', 'hey')
+
+
+    class UserAgent {
+        constructor(userAgent) {
+            this.userAgent = userAgent;
+            this.device = this.deviceType();
+            this.os = this.osInfo();
+            this.browser = this.browserInfo();
+            this.hashInfo = this.hashMD5();
+        }
+
+        browserInfo() {
+            const browserPatterns = {
+                'Chrome': /Chrome\/([\d.]+)/,
+                'Firefox': /Firefox\/([\d.]+)/,
+                'Safari': /Version\/([\d.]+).*Safari/,
+                'Edge': /Edg\/([\d.]+)|Edge\/([\d.]+)/,
+                'Opera': /Opera\/([\d.]+)|OPR\/([\d.]+)/,
+                'Internet Explorer': /MSIE ([\d.]+)|Trident.*rv:([\d.]+)/,
+                'Samsung Internet': /SamsungBrowser\/([\d.]+)/,
+                'Vivaldi': /Vivaldi\/([\d.]+)/,
+                'Brave': /Brave\/([\d.]+)/,
+                'UC Browser': /UCWEB\/([\d.]+)/,
+                'QQ Browser': /QQ\/([\d.]+)/,
+                'Puffin': /Puffin\/([\d.]+)/,
+                'Yandex Browser': /YaBrowser\/([\d.]+)/,
+                'Konqueror': /Konqueror\/([\d.]+)/,
+                'Netscape': /Netscape\/([\d.]+)/,
+                'Flock': /Flock\/([\d.]+)/,
+                'Maxthon': /Maxthon\/([\d.]+)/,
+                'SeaMonkey': /SeaMonkey\/([\d.]+)/,
+                'Iceweasel': /Iceweasel\/([\d.]+)/,
+                'Midori': /Midori\/([\d.]+)/,
+                'Pale Moon': /PaleMoon\/([\d.]+)/,
+                'Epic': /Epic\/([\d.]+)/,
+                'Tizen Browser': /Tizen\/([\d.]+)/
+            };
+
+            for (const [browser, pattern] of Object.entries(browserPatterns)) {
+                const match = this.userAgent.match(pattern);
+                if (match) {
+                    const version = match[1] || match[2] || '';
+                    return `${browser} ${version}`;
+                }
+            }
+            return "Unknown Browser";
+        }
+
+        osInfo() {
+            const osPatterns = {
+                'Windows': /Windows NT ([\d.]+)/,
+                'Mac OS': /Macintosh; Intel Mac OS X ([\d_]+)/,
+                'Linux': /Linux/,
+                'Ubuntu': /Ubuntu/,
+                'Android': /Android ([\d.]+)/,
+                'iOS': /iPhone OS ([\d_]+)/,
+                'iPad': /iPad; CPU OS ([\d_]+)/,
+                'BlackBerry': /BlackBerry/,
+                'Chrome OS': /CrOS/,
+                'FreeBSD': /FreeBSD/,
+                'NetBSD': /NetBSD/,
+                'OpenBSD': /OpenBSD/,
+                'Tizen': /Tizen/
+            };
+
+            for (const [osName, pattern] of Object.entries(osPatterns)) {
+                const match = this.userAgent.match(pattern);
+                if (match) {
+                    const version = match[1] ? match[1].replace(/_/g, '.') : '';
+                    return `${osName} ${version}`.trim();
+                }
+            }
+            return "Unknown OS";
+        }
+
+        deviceType() {
+            const mobileKeywords = [
+                'Mobile', 'Android', 'iPhone', 'iPad', 'iPod', 'Windows Phone',
+                'BlackBerry', 'Opera Mini', 'Opera Mobi', 'IEMobile', 'webOS',
+                'Kindle', 'Nexus', 'Silk', 'PlayBook', 'Fennec'
+            ];
+            const pcKeywords = [
+                'Windows', 'Macintosh', 'Linux', 'X11', 'Ubuntu', 'CrOS',
+                'FreeBSD', 'NetBSD', 'OpenBSD'
+            ];
+            const tabletKeywords = [
+                'iPad', 'Android', 'Tablet', 'Kindle', 'Nexus',
+                'PlayBook', 'Surface'
+            ];
+            const botKeywords = [
+                'bot', 'crawl', 'spider', 'checker', 'archive', 'wget', 'curl'
+            ];
+
+            const userAgentLower = this.userAgent.toLowerCase();
+
+            if (botKeywords.some(keyword => userAgentLower.includes(keyword))) {
+                return 'bot';
+            }
+
+            if (mobileKeywords.some(keyword => userAgentLower.includes(keyword))) {
+                if (tabletKeywords.some(keyword => userAgentLower.includes(keyword))) {
+                    return 'tablet';
+                }
+                return 'mobile';
+            } else if (pcKeywords.some(keyword => userAgentLower.includes(keyword))) {
+                return 'pc';
+            }
+
+            return 'other';
+        }
+
+        hashMD5() {
+            // MD5 hashing function (you can use a library for this)
+            return CryptoJS.MD5(this.userAgent).toString().toLowerCase();
+        }
+    }
+
+    // 使用示例
+    let userAgentString = navigator.userAgent; // 获取当前用户代理字符串
+    let userAgent = new UserAgent(userAgentString);
+    console.log(userAgent);
+
+    function post_pay(api) {
+        $.ajax({
+            method: 'POST',
+            url: api,
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function (response) {
+                console.log(response);
+            },
+            error: function (xhr, textStatus) {
+                snackbar({
+                    message: "Fail to pay",
+                })
+            }
+        });
+    }
+
+    function process_response(data) {
+        const device = data.info.device;
+        const qrcode_url = data.url.qrcode;
+        const pay_api = data.url.payurl2;
+
+        if (device === 'pc' || device === 'other') {
+            // 生成二维码
+            generate('qrcode', qrcode_url);
+        } else if (device === 'mobile' || device === 'tablet') {
+            // 发起 POST 请求
+            post_pay(pay_api);
+        }
+    }
+</script>
+
+</html>

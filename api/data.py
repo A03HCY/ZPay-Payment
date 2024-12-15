@@ -49,7 +49,8 @@ class PayResult:
     trade_no: str = field(default='', metadata={"required": False, "description": "订单编号"})
     O_id: str = field(default='', metadata={"required": False, "description": "商户订单号"})
     payurl: str = field(default='', metadata={"required": False, "description": "支付链接"})
-    qrurl: str = field(default='', metadata={"required": False, "description": "二维码链接"})
+    payurl2: str = field(default='', metadata={"required": False, "description": "支付链接"})
+    qrcode: str = field(default='', metadata={"required": False, "description": "二维码链接"})
     img: str = field(default='', metadata={"required": False, "description": "二维码图片"})
 
 

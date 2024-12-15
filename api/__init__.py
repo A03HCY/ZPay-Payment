@@ -1,4 +1,4 @@
-from data import *
+from api.data import *
 import requests
 import hashlib
 import base64
@@ -12,6 +12,9 @@ def params_to_dict(params: str) -> dict:
         param = param.split('=')
         params_dict[param[0]] = param[1]
     return params_dict
+
+
+class Payment:...
 
 
 class Payment:
@@ -32,13 +35,27 @@ class Payment:
     def everyth_set_ok(self) -> bool:
         return self.pid != '' and self.key != '' and self.default_paytype in ['alipay', 'wxpay'] and self.return_url != '' and self.notify_url != ''
     
-    def load(self, data: BasicParams):
-        self.pid = data.pid
-        self.key = data.key
-        self.default_paytype = data.default_paytype
-        self.set_return_url(data.return_url, data.return_with_base64)
-        self.set_notify_url(data.notify_url, data.notify_with_base64)
-        return self
+    @staticmethod
+    def load(arg1, arg2=None):
+        if type(arg1) == BasicParams and arg2 == None:
+            payment = Payment()
+            data = arg1
+            payment.pid = data.pid
+            payment.key = data.key
+            payment.default_paytype = data.default_paytype
+            payment.set_return_url(data.return_url, data.return_with_base64)
+            payment.set_notify_url(data.notify_url, data.notify_with_base64)
+            return payment
+        if type(arg1) == Payment and type(arg2) == BasicParams:
+            self = arg1
+            data = arg2
+            self.pid = data.pid
+            self.key = data.key
+            self.default_paytype = data.default_paytype
+            self.set_return_url(data.return_url, data.return_with_base64)
+            self.set_notify_url(data.notify_url, data.notify_with_base64)
+            return self
+        return Payment()
     
     def set_api(self, api: PayAPI):
         self.default_api = api
@@ -101,8 +118,9 @@ class Payment:
         '''
         调用支付接口
         '''
-        data = params_to_dict(self.sign(info))
+        data = params_to_dict(self.sign(info).urlparams)
         response = requests.post(self.default_api.request_url, data=data)
+        print(response.json())
         result = PayResult(**response.json())
         return result
     
@@ -138,18 +156,3 @@ class Payment:
             'act': 'refund'
         })
         return RefundResult(**response.json())
-    
-
-DefultPayAPI = PayAPI(
-    direct_url='https://z-pay.cn/submit.php',
-    request_url='https://zpayz.cn/mapi.php',
-    action_url='https://z-pay.cn/api.php'
-)
-
-
-test = Payment('2024121412492711', '7IUnBovq3tfraXCppZH0RkFEiqrdUMKm')
-test.set_notify_url('https://api.z-pay.cn/api/callback')
-test.set_return_url('https://z-pay.cn')
-test.set_api(DefultPayAPI)
-
-print(test.refund('1E8cX2lcWonV9S5E0vwv'))
